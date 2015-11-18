@@ -1,0 +1,66 @@
+KAFKA
+
+1. Kafka is a distributed, partitioned, replicated commit log service.
+
+Basic messaging terminology:
+
+Kafka maintains feeds of messages in categories called topics.
+We'll call processes that publish messages to a Kafka topic producers.
+We'll call processes that subscribe to topics and process the feed of published messages consumers..
+Kafka is run as a cluster comprised of one or more servers each of which is called a broker.
+
+2. Anatomy of Topic : Each partition is an ordered, immutable sequence of messages that is continually appended to—a commit log. 
+offset : The messages in the partitions are each assigned a sequential id number called the offset that uniquely identifies each message within the partition.
+
+#The Kafka cluster retains all published messages—whether or not they have been consumed—for a configurable period of time. For example if the log retention is set to two days, then for the two days after a message is published it is available for consumption, after which it will be discarded to free up space.
+
+# Only metadata retained on a per-consumer basis is the position of the consumer in the log, called the "offset". This offset is controlled by the consumer: normally a consumer will advance its offset linearly as it reads messages, but in fact the position is controlled by the consumer and it can consume messages in any order it likes. For example a consumer can reset to an older offset to reprocess.
+
+3. Distribution : 
+# The partitions of the log are distributed over the servers in the Kafka cluster with each server handling data and requests for a share of the partitions. Each partition is replicated across a configurable number of servers for fault tolerance.
+
+# Each partition has one server which acts as the "leader" and zero or more servers which act as "followers". The leader handles all read and write requests for the partition while the followers passively replicate the leader. If the leader fails, one of the followers will automatically become the new leader. Each server acts as a leader for some of its partitions and a follower for others so load is well balanced within the cluster.
+
+4. Producers : 
+Producers publish data to the topics of their choice. The producer is responsible for choosing which message to assign to which partition within the topic. This can be done in a round-robin fashion simply to balance load or it can be done according to some semantic partition function.
+
+5. Consumers :
+Messaging traditionally has two models: queuing and publish-subscribe.
+In a queue, a pool of consumers may read from a server and each message goes to one of them; in publish-subscribe the message is broadcast to all consumers.
+
+#Kafka offers a single consumer abstraction that generalizes both of these—the consumer group.
+
+#Consumers label themselves with a consumer group name, and each message published to a topic is delivered to one consumer instance within each subscribing consumer group. Consumer instances can be in separate processes or on separate machines.
+
+$$ If all the consumer instances have the same consumer group, then this works just like a traditional queue balancing load over the consumers.
+$$ If all the consumer instances have different consumer groups, then this works like publish-subscribe and all messages are broadcast to all consumers.
+
+#By having a notion of parallelism—the partition—within the topics, Kafka is able to provide both ordering guarantees and load balancing over a pool of consumer processes.
+This is achieved by assigning the partitions in the topic to the consumers in the consumer group so that each partition is consumed by exactly one consumer in the group. By doing this we ensure that the consumer is the only reader of that partition and consumes the data in order. Since there are many partitions this still balances the load over many consumer instances.
+
+**  Consumer Group name is global across a Kafka cluster, so you should be careful that any 'old' logic Consumers be shutdown before starting new code. 
+When a new process is started with the same Consumer Group name, Kafka will add that processes' threads to the set of threads available to consume the Topic and trigger a 're-balance'. During this re-balance Kafka will assign available partitions to available threads, possibly moving a partition to another process. If you have a mixture of old and new business logic, it is possible that some messages go to the old logic.
+
+6. Guarantees : 
+At a high-level Kafka gives the following guarantees:
+> Messages sent by a producer to a particular topic partition will be appended in the order they are sent. That is, if a message M1 is sent by the same producer as a message M2, and M1 is sent first, then M1 will have a lower offset than M2 and appear earlier in the log.
+> A consumer instance sees messages in the order they are stored in the log.
+> For a topic with replication factor N, we will tolerate up to N-1 server failures without losing any messages committed to the log.
+
+Note : 
+
+7. Kafka Offset - 
+http://stackoverflow.com/questions/27499277/number-of-commits-and-offset-in-each-partition-of-a-kafka-topic
+https://cwiki.apache.org/confluence/display/KAFKA/System+Tools
+
+Actually three types of offsets:
+
+# The offset of the first available message in topic's partition. Use -2 (earliest) as --time parameter for GetOffsetShell tool
+# The offset of the last available message in topic's partition. Use -1(latest) as --time parameter.
+# The last read/processed message offset maintained by kafka consumer. High level consumer stores this information in Zookeeper (separately for every consumer group) and takes care about keeping it up to date when you call commit() or when auto-commit setting is set to true. For simple consumer, your code have to take care about managing offsets.
+
+./bin/kafka-run-class.sh kafka.tools.GetOffsetShell --broker-list 192.168.34.53:9092 --topic page_visits --time -1 --partitions 0
+
+8. Kafka List Topics : ./bin/kafka-topics.sh --list --zookeeper 192.168.34.53:2181
+9. Kakfka Delete Topic : ./bin/kafka-topics.sh --delete --zookeeper 192.168.34.53:2181 --topic  ibeat_pagetrendLog
+

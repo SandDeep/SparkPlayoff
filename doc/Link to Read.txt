@@ -1,0 +1,48 @@
+Kafka
+-----------------------------------------------------
+Architecture-
+https://kafka.apache.org/08/design.html#introduction
+https://www.ibm.com/developerworks/linux/library/j-zerocopy/
+
+Monitoring-
+https://github.com/allegro/kafka-offset-monitor-graphite
+
+Integration with spark–
+https://databricks.com/blog/2015/03/30/improvements-to-kafka-integration-of-spark-streaming.html
+ 
+
+
+
+Spark
+-----------------------------------------------------
+Programming guide –
+http://spark.apache.org/docs/latest/streaming-programming-guide.html
+
+Properties and configuration -
+https://spark.apache.org/docs/1.4.1/configuration.html
+
+Web UI Explanation -
+https://www.mapr.com/blog/getting-started-spark-web-ui#.VePly_mqpAO
+
+Code Example –
+https://github.com/apache/spark/tree/master/examples/src/main/java/org/apache/spark/examples
+
+Kafka Integration –
+https://spark.apache.org/docs/1.4.1/streaming-kafka-integration.html
+
+Mongo Integration –
+https://github.com/mongodb/mongo-hadoop/wiki/Spark-Usage
+http://stackoverflow.com/questions/27523337/how-to-query-to-mongo-using-spark
+
+DStream operations –
+https://spark.apache.org/docs/1.1.0/api/java/org/apache/spark/streaming/api/java/JavaPairDStream.html
+
+Community Page (issues and solutions) –
+http://apache-spark-user-list.1001560.n3.nabble.com
+
+SQL
+http://www.river-of-bytes.com/2015/02/spark-sql-integration-for-mongodb.html
+
+Mongo Options
+https://github.com/mongodb/mongo-hadoop/wiki/Configuration-Reference
+

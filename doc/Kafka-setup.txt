@@ -1,0 +1,130 @@
+LINUX - Setup
+
+nohup ./bin/zookeeper-server-start.sh config/zookeeper.properties > templogs/zookeper.log &
+
+nohup ./bin/kafka-server-start.sh config/server.properties > templogs/kafka-server.log &
+nohup ./bin/kafka-server-start.sh config/server-1.properties > templogs/kafka-server-1.log &
+nohup ./bin/kafka-server-start.sh config/server-2.properties > templogs/kafka-server-2.log &
+./bin/kafka-console-consumer.sh --zookeeper localhost:2181 --topic page_visits --from-beginning
+
+nohup ./bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 3 --partitions 1 --topic my-replicated-topic > templogs/kafka-topics.log &
+./bin/kafka-console-producer.sh --broker-list localhost:9092 --topic my-replicated-topic
+
+cd kafka_2.10-0.8.2.0
+
+1. Start Zookeeper
+bin/zookeeper-server-start.sh config/zookeeper.properties
+
+2: Start the server
+bin/kafka-server-start.sh config/server.properties
+
+3: Create a topic
+bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic test
+
+We can now see that topic if we run the list topic command:
+> bin/kafka-topics.sh --list --zookeeper localhost:2181
+
+4: Send some messages
+> bin/kafka-console-producer.sh --broker-list localhost:9092 --topic test 
+
+5: Start a consumer
+> bin/kafka-console-consumer.sh --zookeeper localhost:2181 --topic test --from-beginning
+
+6: Setting up a multi-broker cluster
+Now edit these new files and set the following properties:
+ 
+config/server-1.properties:
+    broker.id=1
+    port=9093
+    log.dir=/tmp/kafka-logs-1
+	
+Now create a new topic with a replication factor of three:
+> bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 3 --partitions 1 --topic my-replicated-topic
+
+"describe topics" command:
+> bin/kafka-topics.sh --describe --zookeeper localhost:2181 --topic my-replicated-topic
+Topic:my-replicated-topic	PartitionCount:1	ReplicationFactor:3	Configs:
+	Topic: my-replicated-topic	Partition: 0	Leader: 1	Replicas: 1,2,0	Isr: 1,2,0
+	
+The first line gives a summary of all the partitions, each additional line gives information about one partition. Since we have only one partition for this topic there is only one line.
+"leader" is the node responsible for all reads and writes for the given partition. Each node will be the leader for a randomly selected portion of the partitions.
+"replicas" is the list of nodes that replicate the log for this partition regardless of whether they are the leader or even if they are currently alive.
+"isr" is the set of "in-sync" replicas. This is the subset of the replicas list that is currently alive and caught-up to the leader.
+
+
+WINDOWS - Setup
+Open kafka folder in cmd 
+
+cd kafka_2.10-0.8.2.1
+
+1. Start Zookeeper
+bin\windows\zookeeper-server-start.bat config\zookeeper.properties
+
+2: Start the server
+Broker 1
+bin\windows\kafka-server-start.bat config\server.properties
+
+Broker 2
+bin\windows\kafka-server-start.bat config\server-1.properties
+
+3: Start a consumer
+bin\windows\kafka-console-consumer.bat --zookeeper localhost:2181 --topic ibeat_pagetrendLog --from-beginning
+
+
+
+
+https://gist.github.com/mthssdrbrg/7df34a795e07eef10262
+
+==== 0.8.1.1 config
+advertised.host.name=host-1
+auto.leader.rebalance.enable=true
+background.threads=4
+broker.id=<broker id>
+controlled.shutdown.enable=true
+controlled.shutdown.retry.backoff.ms=30000
+controller.message.queue.size=10000
+default.replication.factor=3
+delete.topic.enable=true
+fetch.purgatory.purge.interval.requests=1000
+host.name=host-1
+log.dirs=/media/ephemeral0/kafka
+log.retention.hours=18
+log.roll.hours=18
+log.segment.bytes=1073741824
+num.partitions=3
+num.replica.fetchers=2
+port=9092
+producer.purgatory.purge.interval.requests=1000
+replica.fetch.min.bytes=10240
+replica.fetch.wait.max.ms=3000
+socket.receive.buffer.bytes=1048576
+socket.send.buffer.bytes=1048576
+zookeeper.connect=<zk hosts string>
+
+==== 0.8.2-beta config
+advertised.host.name=host-1
+auto.leader.rebalance.enable=true
+background.threads=4
+broker.id=<broker id>
+controlled.shutdown.enable=true
+controlled.shutdown.retry.backoff.ms=30000
+default.replication.factor=3
+delete.topic.enable=true
+fetch.purgatory.purge.interval.requests=1000
+host.name=host-1
+log.dirs=/media/ephemeral0/kafka
+log.retention.hours=18
+log.roll.hours=18
+log.segment.bytes=1073741824
+num.partitions=3
+num.recovery.threads.per.data.dir=4
+num.replica.fetchers=2
+port=9092
+producer.purgatory.purge.interval.requests=1000
+replica.fetch.min.bytes=10240
+replica.fetch.wait.max.ms=3000
+socket.receive.buffer.bytes=1048576
+socket.send.buffer.bytes=1048576
+unclean.leader.election.enable=false
+zookeeper.connect=<zk hosts string>
+
